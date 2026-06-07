@@ -1,5 +1,5 @@
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/device.mk
+    $(LOCAL_DIR)/twrp_WP19_Pro.mk
 
 COMMON_LUNCH_CHOICES := \
-    omni_WP19_Pro-eng
+    twrp_WP19_Pro-eng
