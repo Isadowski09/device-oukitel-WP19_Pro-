@@ -1,0 +1,5 @@
+on init
+    export PATH /sbin:/system/bin:/system/xbin
+
+on fs
+    mount_all /vendor/etc/fstab.mt6789
