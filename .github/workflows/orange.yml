@@ -1,0 +1,58 @@
+name: OrangeFox Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Build
+        uses: actions/cache@v4
+        with:
+          path: ~/workspace/.repo
+          key: ${{ runner.os }}-repo-sync
+
+      - name: Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+
+      - name: Setup Repo
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          sudo ln -sf ~/bin/repo /usr/bin/repo
+
+      - name: Sync Sources
+        run: |
+          mkdir -p ~/workspace
+          cd ~/workspace
+          repo init -u https://github.com/OrangeFoxRecovery/manifest.git -b fox_12.1 --depth=1
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+      - name: Sync Device Tree
+        run: |
+          cd ~/workspace
+          git clone https://github.com/Isadowski09/device-oukitel-WP19_Pro- -b main device/oukitel/WP19_Pro
+
+      - name: Compile
+        run: |
+          cd ~/workspace
+          source build/envsetup.sh
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
+          lunch twrp_WP19_Pro-eng
+          mka adbd recoveryimage
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Recovery-Image
+          path: ~/workspace/out/target/product/WP19_Pro/recovery.img
