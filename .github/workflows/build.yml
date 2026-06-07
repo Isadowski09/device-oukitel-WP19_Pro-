@@ -8,8 +8,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # We check out the tree into a specific folder so it's easy to move
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          path: device-tree
 
       - name: Install dependencies
         run: |
@@ -23,42 +26,55 @@ jobs:
             schedtool squashfs-tools xsltproc zip zlib1g-dev \
             python3 python3-pip
 
-      - name: Install repo tool (FIXED)
+      - name: Fix git environment
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git config --global http.version HTTP/1.1
+          git config --global http.postBuffer 524288000
+
+      - name: Install repo tool
         run: |
           mkdir -p ~/bin
           curl -o ~/bin/repo https://storage.googleapis.com/git-repo-downloads/repo
-          chmod +x ~/bin/repo
+          chmod a+rx ~/bin/repo
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Initialize OrangeFox source
+      - name: Initialize OrangeFox
         run: |
+          export GIT_TERMINAL_PROMPT=0
           mkdir fox
           cd fox
-          repo init -u https://github.com/OrangeFoxRecovery/manifest.git -b fox_14.1
+          repo init -u https://gitlab.com/OrangeFox/misc/orangefox_manifest.git -b fox_14.1 --depth=1
           repo sync -c --force-sync --no-clone-bundle --no-tags -j$(nproc --all)
 
       - name: Clone device tree
         run: |
-          cd fox/device
-          mkdir -p oukitel
-          cp -r ../../device-oukitel-WP19_Pro oukitel/WP19_Pro
-
-      - name: Fix vendor_boot compatibility
-        run: |
-          cd fox
-          export ALLOW_MISSING_DEPENDENCIES=true
-          export FOX_USE_SPECIFIC_MIRROR=true
-          export FOX_BUILD_DEVICE=WP19_Pro
+          mkdir -p fox/device/oukitel/WP19_Pro
+          # Copy the checked-out tree into the OrangeFox build environment
+          cp -r device-tree/* fox/device/oukitel/WP19_Pro/
 
       - name: Build OrangeFox
         run: |
           cd fox
+          
+          # Environment variables must be exported in the same session as the build
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export FOX_USE_SPECIFIC_MIRROR=true
+          export FOX_BUILD_DEVICE=WP19_Pro
+          export LC_ALL="C"
+          
           source build/envsetup.sh
           lunch omni_WP19_Pro-eng
-          mka recoveryimage -j$(nproc --all)
+          
+          # Use vendorbootimage since this is a vendor_boot device
+          mka vendorbootimage -j$(nproc --all)
 
       - name: Upload recovery
         uses: actions/upload-artifact@v4
         with:
           name: OrangeFox-WP19_Pro
-          path: fox/out/target/product/*/recovery.img
+          # Upload both the flashable zip and the raw img file
+          path: |
+            fox/out/target/product/WP19_Pro/OrangeFox-*.zip
+            fox/out/target/product/WP19_Pro/vendor_boot.img
