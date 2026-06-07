@@ -4,27 +4,21 @@ PRODUCT_BRAND := OUKITEL
 PRODUCT_MODEL := WP19 Pro
 PRODUCT_MANUFACTURER := OUKITEL
 
-PRODUCT_SYSTEM_NAME := WP19_Pro_EEA
-PRODUCT_SYSTEM_DEVICE := WP19_Pro
+DEVICE_PATH := device/oukitel/WP19_Pro
 
-# Architecture
-PRODUCT_CPU_ABI := arm64-v8a
-PRODUCT_CPU_ABI2 := armeabi-v7a
-
-# Recovery
-PRODUCT_PACKAGES += \
-    init.recovery.mt6789.rc
-
-# Fstab
+# recovery init
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery.fstab:system/etc/recovery.fstab
+    $(DEVICE_PATH)/init.recovery.mt6789.rc:root/init.recovery.mt6789.rc
 
-# Props override safety
+# recovery fstab
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery.fstab:root/recovery.fstab
+
+# props
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.product.device=WP19_Pro \
     ro.product.model=WP19 Pro \
     ro.product.brand=OUKITEL
 
-# A/B support
+# dynamic partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
-PRODUCT_BUILD_SUPER_PARTITION := false
