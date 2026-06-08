@@ -33,8 +33,6 @@ BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 # PARTITIONS
 # ------------------------
 BOARD_HAS_LARGE_FILESYSTEM := true
-PRODUCT_USE_DYNAMIC_PARTITIONS := true
-PRODUCT_BUILD_SUPER_PARTITION := false
 
 # ------------------------
 # AVB (disable recovery issues)
