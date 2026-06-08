@@ -29,13 +29,22 @@ TARGET_BOOTLOADER_BOARD_NAME := WP19_Pro
 # ------------------------
 TARGET_NO_KERNEL := true
 BOARD_USES_RECOVERY_AS_BOOT := false
-# Force A/B structure to enable vendor_boot logic
 AB_OTA_UPDATER := true
+
+# AB Partitions list
+AB_OTA_PARTITIONS += \
+    boot \
+    dtbo \
+    vendor_boot \
+    system \
+    vendor
 
 # vendor_boot recovery (CRITICAL)
 BOARD_BUILD_VENDOR_BOOT_IMAGE := true
 BOARD_USES_VENDOR_BOOTIMAGE := true
 BOARD_BOOTIMG_HEADER_VERSION := 4
+BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
+BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true
 BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864
 
 # ------------------------
@@ -54,6 +63,7 @@ BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
 # ------------------------
 TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+TW_MAX_BRIGHTNESS := 2047
 
 TW_THEME := portrait_hdpi
 TW_INCLUDE_CRYPTO := true
