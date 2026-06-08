@@ -1,3 +1,5 @@
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+
 PRODUCT_DEVICE := WP19_Pro
 PRODUCT_NAME := twrp_WP19_Pro
 PRODUCT_BRAND := OUKITEL
