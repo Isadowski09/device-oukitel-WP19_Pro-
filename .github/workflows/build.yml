@@ -1,93 +1,46 @@
-name: Compile OrangeFox Recovery
-
+name: Custom TWRP Builder
 on:
   workflow_dispatch:
-    inputs:
-      MANIFEST_URL:
-        description: 'OrangeFox Manifest URL'
-        required: true
-        default: 'https://github.com/OrangeFoxRecovery/manifest.git'
-      MANIFEST_BRANCH:
-        description: 'OrangeFox Branch'
-        required: true
-        default: 'fox_12.1'
-      DEVICE_TREE_URL:
-        description: 'Your Device Tree Repo URL'
-        required: true
-        default: 'https://github.com/Isadowski09/device-oukitel-WP19_Pro-'
-      DEVICE_TREE_BRANCH:
-        description: 'Device Tree Branch'
-        required: true
-        default: 'main'
-      DEVICE_PATH:
-        description: 'Path to clone to'
-        required: true
-        default: 'device/oukitel/WP19_Pro'
-      DEVICE_NAME:
-        description: 'Target Device Name'
-        required: true
-        default: 'WP19_Pro'
-      MAKEFILE_TYPE:
-        description: 'Makefile Type (omni or twrp)'
-        required: true
-        default: 'twrp'
 
 jobs:
   build:
-    name: Build Recovery for ${{ github.event.inputs.DEVICE_NAME }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
-
     steps:
-      - name: Maximize Build Space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 1024
-          swap-size-mb: 8192
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Set up Build Environment
+      - name: Initialize Build Environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
-
-      - name: Install Repo Tool
-        run: |
+          sudo apt update && sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
 
-      - name: Initialize and Sync Manifest
+      - name: Sync TWRP Source
         run: |
-          mkdir -p ~/workspace
-          cd ~/workspace
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          repo init -u ${{ github.event.inputs.MANIFEST_URL }} -b ${{ github.event.inputs.MANIFEST_BRANCH }} --depth=1
-          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+          mkdir android-recovery
+          cd android-recovery
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
+          repo sync -j$(nproc --all)
 
       - name: Clone Device Tree
         run: |
-          cd ~/workspace
-          git clone ${{ github.event.inputs.DEVICE_TREE_URL }} -b ${{ github.event.inputs.DEVICE_TREE_BRANCH }} ${{ github.event.inputs.DEVICE_PATH }}
+          # Replace this with your own repo URL
+          git clone https://github.com/Isadowski09/device-oukitel-WP19_Pro- android-recovery/device/oukitel/WP19_Pro
 
-      - name: Build OrangeFox Recovery
+      - name: Build
         run: |
-          cd ~/workspace
+          cd android-recovery
           source build/envsetup.sh
-          export ALLOW_MISSING_DEPENDENCIES=true
-          export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
-          export LC_ALL="C"
-          lunch ${{ github.event.inputs.MAKEFILE_TYPE }}_${{ github.event.inputs.DEVICE_NAME }}-eng
-          mka adbd recoveryimage
+          lunch twrp_WP19_Pro-eng
+          mka vendorbootimage -j$(nproc --all)
 
-      - name: Upload Recovery Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Artifact
+        uses: softprops/action-gh-release@v2
         with:
-          name: OrangeFox-${{ github.event.inputs.DEVICE_NAME }}
-          path: ~/workspace/out/target/product/${{ github.event.inputs.DEVICE_NAME }}/recovery.img
+          files: android-recovery/out/target/product/WP19_Pro/vendor_boot.img
+          tag_name: build-${{ github.run_id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
