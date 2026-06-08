@@ -10,6 +10,7 @@ TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_ABI2 := 
 TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := cortex-a76
+TARGET_SUPPORTS_64_BIT_APPS := true
 
 # Secondary Architecture
 TARGET_2ND_ARCH := arm
