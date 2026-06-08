@@ -3,7 +3,6 @@ DEVICE_PATH := device/oukitel/WP19_Pro
 # ------------------------
 # ARCH
 # ------------------------
-# Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
@@ -12,7 +11,6 @@ TARGET_CPU_VARIANT := generic
 TARGET_CPU_VARIANT_RUNTIME := cortex-a76
 TARGET_SUPPORTS_64_BIT_APPS := true
 
-# Secondary Architecture
 TARGET_2ND_ARCH := arm
 TARGET_2ND_ARCH_VARIANT := armv8-a
 TARGET_2ND_CPU_ABI := armeabi-v7a
@@ -31,6 +29,8 @@ TARGET_BOOTLOADER_BOARD_NAME := WP19_Pro
 # ------------------------
 TARGET_NO_KERNEL := true
 BOARD_USES_RECOVERY_AS_BOOT := false
+# Force A/B structure to enable vendor_boot logic
+AB_OTA_UPDATER := true
 
 # vendor_boot recovery (CRITICAL)
 BOARD_BUILD_VENDOR_BOOT_IMAGE := true
@@ -40,14 +40,13 @@ BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true
 BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864
 
-
 # ------------------------
 # PARTITIONS
 # ------------------------
 BOARD_HAS_LARGE_FILESYSTEM := true
 
 # ------------------------
-# AVB (disable recovery issues)
+# AVB
 # ------------------------
 BOARD_AVB_ENABLE := true
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
