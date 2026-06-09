@@ -41,14 +41,12 @@ jobs:
   build:
     name: Build OFR by ${{ github.actor }}
     runs-on: ubuntu-22.04
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-              
+
     - name: Configure Git Credentials
       run: |
         git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
@@ -103,6 +101,10 @@ jobs:
         export ALLOW_MISSING_DEPENDENCIES=true
         set -e
         lunch twrp_${{ inputs.DEVICE_NAME }}-eng && make clean && mka adbd ${{ inputs.BUILD_TARGET }}image
+
+    - name: Set Release Properties
+      run: |
+        echo "BUILD_DATE=$(TZ=Asia/Manila date +%Y%m%d)" >> $GITHUB_ENV
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
